@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>D3 Polygon Generator</title>
+
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+let svg;
+
+const width = 800;
+const height = 600;
+
+let clickCount = 0;
+const maxShapes = 20;
+
+async function prepareVis() {
+
+    svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .style("border", "1px solid black")
+        .on("click", addShape);
+
+}
+
+function createPolygonPoints(sides, radius, centerX, centerY) {
+
+    let points = [];
+
+    for (let i = 0; i < sides; i++) {
+
+        let angle = (2 * Math.PI * i) / sides;
+
+        let x = centerX + radius * Math.cos(angle);
+        let y = centerY + radius * Math.sin(angle);
+
+        points.push([x, y]);
+
+    }
+
+    return points.join(" ");
+
+}
+
+function addShape(event) {
+
+    if (clickCount >= maxShapes) return;
+
+    clickCount++;
+
+    let [x, y] = d3.pointer(event);
+
+    let color = d3.schemeCategory10[clickCount % 10];
+
+    if (clickCount <= 2) {
+
+        svg.append("circle")
+            .attr("cx", x)
+            .attr("cy", y)
+            .attr("r", 0)
+            .attr("fill", color)
+            .transition()
+            .duration(600)
+            .attr("r", 25);
+
+    } 
+    else {
+
+        let sides = clickCount;
+
+        let polygon = svg.append("polygon")
+            .attr("points", createPolygonPoints(sides, 30, x, y))
+            .attr("fill", color)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("transform", `scale(0) translate(${x},${y})`);
+
+        polygon.transition()
+            .duration(600)
+            .attr("transform", "scale(1)");
+
+    }
+
+}
+
+async function runApp() {
+
+    await prepareVis();
+
+}
+
+runApp();
+
+</script>
+
+</head>
+
+<body>
+
+<h2>Click Anywhere to Add Shapes</h2>
+<p>First 2 clicks create circles. After that, polygons appear with increasing sides (max 20 shapes).</p>
+
+</body>
+</html>
